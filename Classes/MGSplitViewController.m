@@ -553,13 +553,18 @@
 																  forPopoverController:_hiddenPopoverController];
 		}
 		
-	} else if (!inPopover && _hiddenPopoverController && _barButtonItem) {
-		// I know this looks strange, but it fixes a bizarre issue with UIPopoverController leaving masterViewController's views in disarray.
-		[_hiddenPopoverController presentPopoverFromRect:CGRectZero inView:self.view permittedArrowDirections:UIPopoverArrowDirectionAny animated:NO];
-		
-		// Remove master from popover and destroy popover, if it exists.
-		[_hiddenPopoverController dismissPopoverAnimated:NO];
-		_hiddenPopoverController = nil;
+	}
+   else if (!inPopover && _hiddenPopoverController && _barButtonItem)
+   {
+      if ( _hiddenPopoverController && [_hiddenPopoverController isPopoverVisible] )
+      {
+         // I know this looks strange, but it fixes a bizarre issue with UIPopoverController leaving masterViewController's views in disarray.
+         [_hiddenPopoverController presentPopoverFromRect:CGRectZero inView:self.view permittedArrowDirections:UIPopoverArrowDirectionAny animated:NO];
+         
+         // Remove master from popover and destroy popover, if it exists.
+         [_hiddenPopoverController dismissPopoverAnimated:NO];
+         _hiddenPopoverController = nil;
+      }
 		
 		// Inform delegate that the _barButtonItem will become invalid.
 		if (_delegate && [_delegate respondsToSelector:@selector(splitViewController:willShowViewController:invalidatingBarButtonItem:)]) {
