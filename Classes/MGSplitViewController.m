@@ -318,10 +318,6 @@
                [self addChildViewController:controller];
                [self.view addSubview:controller.view];
                [controller didMoveToParentViewController:self];
-//
-//					[controller viewWillAppear:NO];
-//					[self.view addSubview:theView];
-//					[controller viewDidAppear:NO];
 				}
 			}
 		}
@@ -391,10 +387,11 @@
 			theView = controller.view;
 			if (theView) {
 				theView.frame = masterRect;
-				if (!theView.superview) {
-					[controller viewWillAppear:NO];
-					[self.view addSubview:theView];
-					[controller viewDidAppear:NO];
+				if (!theView.superview)
+            {
+               [self addChildViewController:controller];
+               [self.view addSubview:controller.view];
+               [controller didMoveToParentViewController:self];
 				}
 			}
 		}
@@ -497,7 +494,8 @@
 {
 	[super viewWillAppear:animated];
 	
-	if ([self isShowingMaster]) {
+	if ([self isShowingMaster])
+   {
 		[self.masterViewController viewWillAppear:animated];
 	}
 	[self.detailViewController viewWillAppear:animated];
@@ -510,10 +508,12 @@
 {
 	[super viewDidAppear:animated];
 	
-	if ([self isShowingMaster]) {
+	if ([self isShowingMaster])
+   {
 		[self.masterViewController viewDidAppear:animated];
 	}
 	[self.detailViewController viewDidAppear:animated];
+   
 	[self layoutSubviews];
 }
 
