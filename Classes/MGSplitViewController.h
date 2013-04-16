@@ -34,6 +34,7 @@ typedef enum _MGSplitViewDividerStyle {
 }
 
 @property (nonatomic, weak) IBOutlet id <MGSplitViewControllerDelegate> delegate;
+@property (nonatomic, assign) BOOL showMasterInPopover;
 @property (nonatomic, assign) BOOL showsMasterInPortrait; // applies to both portrait orientations (default NO)
 @property (nonatomic, assign) BOOL showsMasterInLandscape; // applies to both landscape orientations (default YES)
 @property (nonatomic, assign, getter=isVertical) BOOL vertical; // if NO, split is horizontal, i.e. master above detail (default YES)

@@ -124,6 +124,7 @@
 	// Configure default behaviour.
 	_viewControllers = [[NSMutableArray alloc] initWithObjects:[NSNull null], [NSNull null], nil];
 	_splitWidth = MG_DEFAULT_SPLIT_WIDTH;
+   _showMasterInPopover = YES;
 	_showsMasterInPortrait = NO;
 	_showsMasterInLandscape = YES;
 	_reconfigurePopup = NO;
@@ -131,10 +132,13 @@
 	_masterBeforeDetail = YES;
 	_splitPosition = MG_DEFAULT_SPLIT_POSITION;
 	CGRect divRect = self.view.bounds;
-	if ([self isVertical]) {
+	if ([self isVertical])
+   {
 		divRect.origin.y = _splitPosition;
 		divRect.size.height = _splitWidth;
-	} else {
+	}
+   else
+   {
 		divRect.origin.x = _splitPosition;
 		divRect.size.width = _splitWidth;
 	}
@@ -148,8 +152,18 @@
 - (void)dealloc
 {
 	_delegate = nil;
+   
+   for (UIViewController* currentViewController in _viewControllers)
+   {
+      [currentViewController.view removeFromSuperview];
+      [currentViewController willMoveToParentViewController:nil];
+      [currentViewController removeFromParentViewController];
+      [currentViewController didMoveToParentViewController:nil];
+   }
+   
+   // by the time this gets called the child view controllers and their views will already be cleaned up
+   //    this is for just for things like the master / details splitter view
 	[self.view.subviews makeObjectsPerformSelector:@selector(removeFromSuperview)];
-	
 }
 
 
@@ -157,7 +171,8 @@
 #pragma mark View management
 
 
--(NSUInteger)supportedInterfaceOrientations {
+-(NSUInteger)supportedInterfaceOrientations
+{
     if (self.detailViewController)
     {
         return [self.detailViewController supportedInterfaceOrientations];
@@ -232,8 +247,9 @@
 
 - (void)layoutSubviewsForInterfaceOrientation:(UIInterfaceOrientation)theOrientation withAnimation:(BOOL)animate
 {
-	if (_reconfigurePopup) {
-		[self reconfigureForMasterInPopover:![self shouldShowMasterForInterfaceOrientation:theOrientation]];
+	if (_reconfigurePopup)
+   {
+		[self reconfigureForMasterInPopover:(_showMasterInPopover && (!self.isLandscape))];
 	}
 	
 	// Layout the master, detail and divider views appropriately, adding/removing subviews as needed.
@@ -297,10 +313,15 @@
 			theView = controller.view;
 			if (theView) {
 				theView.frame = masterRect;
-				if (!theView.superview) {
-					[controller viewWillAppear:NO];
-					[self.view addSubview:theView];
-					[controller viewDidAppear:NO];
+				if (!theView.superview)
+            {
+               [self addChildViewController:controller];
+               [self.view addSubview:controller.view];
+               [controller didMoveToParentViewController:self];
+//
+//					[controller viewWillAppear:NO];
+//					[self.view addSubview:theView];
+//					[controller viewDidAppear:NO];
 				}
 			}
 		}
@@ -527,12 +548,14 @@
 {
 	_reconfigurePopup = NO;
 	
-	if ((inPopover && _hiddenPopoverController) || (!inPopover && !_hiddenPopoverController) || !self.masterViewController) {
+	if ((inPopover && _hiddenPopoverController) || (!inPopover && !_hiddenPopoverController) || !self.masterViewController)
+   {
 		// Nothing to do.
 		return;
 	}
 	
-	if (inPopover && !_hiddenPopoverController && !_barButtonItem) {
+	if (inPopover && !_hiddenPopoverController && !_barButtonItem)
+   {
 		// Create and configure popover for our masterViewController.
 		_hiddenPopoverController = nil;
 		[self.masterViewController viewWillDisappear:NO];
@@ -546,7 +569,8 @@
 														 action:@selector(showMasterPopover:)];
 		
 		// Inform delegate of this state of affairs.
-		if (_delegate && [_delegate respondsToSelector:@selector(splitViewController:willHideViewController:withBarButtonItem:forPopoverController:)]) {
+		if (_delegate && [_delegate respondsToSelector:@selector(splitViewController:willHideViewController:withBarButtonItem:forPopoverController:)])
+      {
 			[(NSObject <MGSplitViewControllerDelegate> *)_delegate splitViewController:self 
 																willHideViewController:self.masterViewController 
 																	 withBarButtonItem:_barButtonItem 
@@ -567,7 +591,8 @@
       }
 		
 		// Inform delegate that the _barButtonItem will become invalid.
-		if (_delegate && [_delegate respondsToSelector:@selector(splitViewController:willShowViewController:invalidatingBarButtonItem:)]) {
+		if (_delegate && [_delegate respondsToSelector:@selector(splitViewController:willShowViewController:invalidatingBarButtonItem:)])
+      {
 			[(NSObject <MGSplitViewControllerDelegate> *)_delegate splitViewController:self 
 																willShowViewController:self.masterViewController 
 															 invalidatingBarButtonItem:_barButtonItem];
@@ -578,7 +603,8 @@
 		
 		// Move master view.
 		UIView *masterView = self.masterViewController.view;
-		if (masterView && masterView.superview != self.view) {
+		if (masterView && masterView.superview != self.view)
+      {
 			[masterView removeFromSuperview];
 		}
 	}
@@ -667,22 +693,27 @@
 
 - (IBAction)toggleMasterView:(id)sender
 {
-	if (_hiddenPopoverController && _hiddenPopoverController.popoverVisible) {
+	if (_hiddenPopoverController && _hiddenPopoverController.popoverVisible)
+   {
 		[_hiddenPopoverController dismissPopoverAnimated:NO];
 	}
 	
-	if (![self isShowingMaster]) {
+	if (![self isShowingMaster])
+   {
 		// We're about to show the master view. Ensure it's in place off-screen to be animated in.
 		_reconfigurePopup = YES;
-		[self reconfigureForMasterInPopover:NO];
+		[self reconfigureForMasterInPopover:(_showMasterInPopover && (!self.isLandscape))];
 		[self layoutSubviews];
 	}
 	
 	// This action functions on the current primary orientation; it is independent of the other primary orientation.
 	[UIView beginAnimations:@"toggleMaster" context:nil];
-	if (self.isLandscape) {
+	if (self.isLandscape)
+   {
 		self.showsMasterInLandscape = !_showsMasterInLandscape;
-	} else {
+	}
+   else
+   {
 		self.showsMasterInPortrait = !_showsMasterInPortrait;
 	}
 	[UIView commitAnimations];
@@ -900,9 +931,14 @@
 - (void)setViewControllers:(NSArray *)controllers
 {
 	if (controllers != _viewControllers) {
-		for (UIViewController *controller in _viewControllers) {
-			if ([controller isKindOfClass:[UIViewController class]]) {
-				[controller.view removeFromSuperview];
+		for (UIViewController *controller in _viewControllers)
+      {
+			if ([controller isKindOfClass:[UIViewController class]])
+         {
+            [controller.view removeFromSuperview];
+            [controller willMoveToParentViewController:nil];
+            [controller removeFromParentViewController];
+            [controller didMoveToParentViewController:nil];
 			}
 		}
 		_viewControllers = [[NSMutableArray alloc] initWithCapacity:2];
@@ -943,15 +979,23 @@
 	}
 	
 	BOOL changed = YES;
-	if ([_viewControllers count] > 0) {
-		if ([_viewControllers objectAtIndex:0] == newMaster) {
+	if ([_viewControllers count] > 0)
+   {
+		if ([_viewControllers objectAtIndex:0] == newMaster)
+      {
 			changed = NO;
-		} else {
-            [self.masterViewController.view removeFromSuperview];
+		}
+      else
+      {
+         [self.masterViewController.view removeFromSuperview];
+         [self.masterViewController willMoveToParentViewController:nil];
+         [self.masterViewController removeFromParentViewController];
+         [self.masterViewController didMoveToParentViewController:nil];
 			[_viewControllers replaceObjectAtIndex:0 withObject:newMaster];
 		}
-		
-	} else {
+	}
+   else
+   {
 		[_viewControllers addObject:newMaster];
 	}
 	
@@ -982,19 +1026,28 @@
 	}
 	
 	BOOL changed = YES;
-	if ([_viewControllers count] > 1) {
-		if ([_viewControllers objectAtIndex:1] == detail) {
+	if ( [_viewControllers count] > 1 )
+   {
+		if ( [_viewControllers objectAtIndex:1] == detail )
+      {
 			changed = NO;
-		} else {
-            [self.detailViewController.view removeFromSuperview];
+		}
+      else
+      {
+         [self.detailViewController.view removeFromSuperview];
+         [self.detailViewController willMoveToParentViewController:nil];
+         [self.detailViewController removeFromParentViewController];
+         [self.detailViewController didMoveToParentViewController:nil];
 			[_viewControllers replaceObjectAtIndex:1 withObject:detail];
 		}
-		
-	} else {
+	}
+   else
+   {
 		[_viewControllers addObject:detail];
 	}
 	
-	if (changed) {
+	if (changed)
+   {
 		[self layoutSubviews];
 	}
 }
@@ -1008,12 +1061,14 @@
 
 - (void)setDividerView:(MGSplitDividerView *)divider
 {
-	if (divider != _dividerView) {
+	if (divider != _dividerView)
+   {
 		[_dividerView removeFromSuperview];
 		_dividerView = divider;
 		_dividerView.splitViewController = self;
 		_dividerView.backgroundColor = MG_DEFAULT_CORNER_COLOR;
-		if ([self isShowingMaster]) {
+		if ([self isShowingMaster])
+      {
 			[self layoutSubviews];
 		}
 	}
