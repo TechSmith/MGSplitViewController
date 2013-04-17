@@ -311,14 +311,16 @@
 		controller = self.masterViewController;
 		if (controller && [controller isKindOfClass:[UIViewController class]])  {
 			theView = controller.view;
-			if (theView) {
+			if (theView)
+         {
 				theView.frame = masterRect;
-				if (!theView.superview)
-            {
+            BOOL needsToBeAddedAsChildViewController = ([controller parentViewController] == nil);
+            if ( needsToBeAddedAsChildViewController )
                [self addChildViewController:controller];
+				if (!theView.superview)
                [self.view addSubview:controller.view];
+            if ( needsToBeAddedAsChildViewController )
                [controller didMoveToParentViewController:self];
-				}
 			}
 		}
 		
@@ -335,11 +337,19 @@
 			theView = controller.view;
 			if (theView) {
 				theView.frame = detailRect;
-				if (!theView.superview) {
+            BOOL needsToBeAddedAsChildViewController = ([controller parentViewController] == nil);
+            if ( needsToBeAddedAsChildViewController )
+               [self addChildViewController:controller];
+				if (!theView.superview)
+            {
 					[self.view insertSubview:theView aboveSubview:self.masterViewController.view];
-				} else {
+            }
+            else
+            {
 					[self.view bringSubviewToFront:theView];
-				}
+            }
+            if ( needsToBeAddedAsChildViewController )
+               [controller didMoveToParentViewController:self];
 			}
 		}
 		
@@ -387,12 +397,13 @@
 			theView = controller.view;
 			if (theView) {
 				theView.frame = masterRect;
-				if (!theView.superview)
-            {
+            BOOL needsToBeAddedAsChildViewController = ([controller parentViewController] == nil);
+            if ( needsToBeAddedAsChildViewController )
                [self addChildViewController:controller];
+				if (!theView.superview)
                [self.view addSubview:controller.view];
+            if ( needsToBeAddedAsChildViewController )
                [controller didMoveToParentViewController:self];
-				}
 			}
 		}
 		
@@ -409,11 +420,16 @@
 			theView = controller.view;
 			if (theView) {
 				theView.frame = detailRect;
+            BOOL needsToBeAddedAsChildViewController = ([controller parentViewController] == nil);
+            if ( needsToBeAddedAsChildViewController )
+               [self addChildViewController:controller];
 				if (!theView.superview) {
 					[self.view insertSubview:theView aboveSubview:self.masterViewController.view];
 				} else {
 					[self.view bringSubviewToFront:theView];
-				}
+            }
+            if ( needsToBeAddedAsChildViewController )
+               [controller didMoveToParentViewController:self];
 			}
 		}
 	}
