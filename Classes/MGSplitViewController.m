@@ -155,10 +155,15 @@
    
    for (UIViewController* currentViewController in _viewControllers)
    {
-      [currentViewController.view removeFromSuperview];
-      [currentViewController willMoveToParentViewController:nil];
-      [currentViewController removeFromParentViewController];
-      [currentViewController didMoveToParentViewController:nil];
+      // should be rare but he can place an NSNull placeholder in the array if the view controller couldn't be allocated,
+      //       saw a crash in testing that was this - MF
+      if ( (id)currentViewController != [NSNull null] )    
+      {
+         [currentViewController.view removeFromSuperview];
+         [currentViewController willMoveToParentViewController:nil];
+         [currentViewController removeFromParentViewController];
+         [currentViewController didMoveToParentViewController:nil];
+      }
    }
    
    // by the time this gets called the child view controllers and their views will already be cleaned up
