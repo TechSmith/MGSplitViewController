@@ -1183,18 +1183,15 @@
 }
 
 
-@synthesize showsMasterInPortrait;
-@synthesize showsMasterInLandscape;
-@synthesize vertical;
-@synthesize delegate;
-@synthesize viewControllers;
-@synthesize masterViewController;
-@synthesize detailViewController;
-@synthesize dividerView;
-@synthesize splitPosition;
-@synthesize splitWidth;
-@synthesize allowsDraggingDivider;
-@synthesize dividerStyle;
+@synthesize showsMasterInPortrait = _showsMasterInPortrait;
+@synthesize showsMasterInLandscape = _showsMasterInLandscape;
+@synthesize vertical = _vertical;
+@synthesize delegate = _delegate;
+@synthesize viewControllers = _viewControllers;
+@synthesize dividerView = _dividerView;
+@synthesize splitPosition = _splitPosition;
+@synthesize splitWidth = _splitWidth;
+@synthesize dividerStyle = _dividerStyle;
 
 
 @end
