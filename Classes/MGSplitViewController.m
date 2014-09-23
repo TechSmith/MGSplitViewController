@@ -226,26 +226,14 @@
 	
 	// Find status bar height by checking which dimension of the applicationFrame is narrower than screen bounds.
 	// Little bit ugly looking, but it'll still work even if they change the status bar height in future.
-	float statusBarHeight = MAX((fullScreenRect.size.width - appFrame.size.width), (fullScreenRect.size.height - appFrame.size.height));
+	CGFloat statusBarHeight = MAX((fullScreenRect.size.width - appFrame.size.width), (fullScreenRect.size.height - appFrame.size.height));
 	
-    // Do the same with the tabbar
-    float tabBarHeight = self.tabBarController.tabBar.bounds.size.height;
-    
-	// Initially assume portrait orientation.
-	float width = fullScreenRect.size.width;
-	float height = fullScreenRect.size.height;
-	
-	// Correct for orientation.
-	if (UIInterfaceOrientationIsLandscape(theOrientation)) {
-		width = height;
-		height = fullScreenRect.size.width;
-	}
-	
-	// Account for status bar, which always subtracts from the height (since it's always at the top of the screen).
-	height -= statusBarHeight;
-    // Accout for tabbar
-	height -= tabBarHeight;
-    
+   // Do the same with the tabbar
+   CGFloat tabBarHeight = self.tabBarController.tabBar.bounds.size.height;
+   
+	CGFloat width = fullScreenRect.size.width;
+	CGFloat height = fullScreenRect.size.height - statusBarHeight - tabBarHeight;
+   
 	return CGSizeMake(width, height);
 }
 
